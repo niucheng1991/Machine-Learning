@@ -1,4 +1,4 @@
-import cvxopt
+
 import numpy as np
 
 class SVM(object):
@@ -38,8 +38,15 @@ class SVM(object):
         b = cvxopt.matrix(0, tc='d')
 
         if not self.C:
-            G = cvxopt.matrix(np.id)
-
+            G = cvxopt.matrix(np.identity(n_samples) * -1)
+            h = cvxopt.matrix(np.zeros(n_samples))
+        else:
+            G_max = np.identity(n_samples) * -1
+            G_min = np.identity(n_samples)
+            G = cvxopt.matrix(np.vstack((G_max, G_min)))
+            h_max = cvxopt.matrix(np.zeros(n_samples))
+            h_min = cvxopt.matrix(np.ones(n_samples) * self.C)
+            h = cvxopt.matrix(np.vstack((h_max, h_min)))
 
         minimization = cvxopt.solvers.qp(P, q, G, h, A, b)
 
@@ -66,10 +73,16 @@ class SVM(object):
 
 
 
+        # 预测函数
         def predict(self, X):
             y_pred = []
 
             for sampel in X:
                 prediction = 0
                 for i in range(len(self.lagr_multipliers)):
-                    prediction += self.lagr_multipliers[i] * 
+                   prediction += self.lagr_multipliers[i] * self.support_vectors_labels[i] * \
+                       self.kernel(self.support_vectors[i], sample)
+
+                prediction += self.intercept
+                y_pred.append(np.sign(prediction))
+            return np.array(y_pred)
