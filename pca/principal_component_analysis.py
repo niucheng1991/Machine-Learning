@@ -28,14 +28,20 @@ class PCA():
     def transfrom(self, X, n_percent=0.90):
         print(X.shape)
         x_new = self.zero_mean(X)
+        # 计算特征协方差矩阵
         covariance_matrix = np.cov(x_new, rowvar=0)
+        # 求特征协方差的特征值和特征向量
         eigenvalues, eigenvectors = np.linalg.eig(covariance_matrix)
 
         n_components = self.calculate_percent(eigenvalues, n_percent)
 
+        # 对特征值从小到大排序
         eigenval_indice = np.argsort(eigenvalues)
+        # 最大的n个特征值的下标
         n_eigenval_indice = eigenval_indice[-1:-(n_components + 1):-1]
+        # 最大的n个特征值对应的特征向量
         n_eigenvectors = eigenvectors[:, n_eigenval_indice]
+        # 数据映射到低维
         X_transformed = x_new.dot(n_eigenvectors)
 
         return X_transformed
